@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>云存储服务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: linear-gradient(180deg, #f5f7fa 0%, #eef2f6 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: #333;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .header-placeholder {
+            width: 32px;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            background: linear-gradient(135deg, #e8ecf1 0%, #dce4ed 100%);
+            margin: 16px;
+            padding: 16px 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .status-value {
+            font-size: 14px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .my-service-btn {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .my-service-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        /* 套餐区域 */
+        .package-section {
+            margin: 0 16px 20px;
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 标签切换 */
+        .tab-switch {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #f5f7fa;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px 8px;
+            font-size: 14px;
+            color: #888;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab-item.active {
+            background: #fff;
+            color: #1a1a1a;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-item .badge {
+            font-size: 11px;
+            color: #ff6b6b;
+            margin-left: 2px;
+        }
+
+        /* 套餐卡片列表 */
+        .package-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .package-card {
+            display: flex;
+            align-items: center;
+            padding: 16px 14px;
+            border-radius: 14px;
+            border: 1.5px solid #e8ecf1;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            background: #fff;
+        }
+
+        .package-card:hover {
+            border-color: #d0d8e0;
+            transform: translateX(2px);
+        }
+
+        .package-card.selected {
+            border-color: #d4a574;
+            background: linear-gradient(135deg, #fdf8f3 0%, #f9f1e8 100%);
+        }
+
+        .package-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 价格区域 */
+        .price-block {
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .price-main {
+            font-size: 22px;
+            font-weight: 700;
+            color: #8b6f47;
+            line-height: 1;
+        }
+
+        .price-main::before {
+            content: '¥';
+            font-size: 14px;
+            margin-right: 1px;
+        }
+
+        .price-original {
+            font-size: 12px;
+            color: #999;
+            text-decoration: line-through;
+            margin-top: 4px;
+        }
+
+        /* 套餐信息 */
+        .package-info {
+            flex: 1;
+            padding: 0 12px;
+        }
+
+        .package-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .package-save {
+            font-size: 12px;
+            color: #e85a5a;
+            font-weight: 500;
+            display: inline-block;
+            background: rgba(232, 90, 90, 0.08);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .package-original-price {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        /* 选中标记 */
+        .check-mark {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #d4a574;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+        }
+
+        .package-card.selected .check-mark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .check-mark svg {
+            width: 14px;
+            height: 14px;
+            stroke: #fff;
+            stroke-width: 2.5;
+        }
+
+        /* 推荐标签 */
+        .recommend-badge {
+            position: absolute;
+            top: -1px;
+            right: 12px;
+            background: linear-gradient(135deg, #e85a5a 0%, #d44444 100%);
+            color: #fff;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 0 0 6px 6px;
+            font-weight: 500;
+        }
+
+        /* 连续订阅说明 */
+        .subscription-tip {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, #f8f9fc 0%, #f0f4f8 100%);
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .subscription-tip.hidden {
+            display: none;
+        }
+
+        .tip-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            background: #d4a574;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* 权益区域 */
+        .benefits-section {
+            margin: 0 16px 20px;
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .benefits-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .benefits-title::before,
+        .benefits-title::after {
+            content: '';
+            width: 24px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4a574, transparent);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 16px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .benefit-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fdf8f3 0%, #f5ebe0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .benefit-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: #8b6f47;
+            stroke-width: 1.8;
+        }
+
+        .benefit-text {
+            font-size: 14px;
+            color: #444;
+            font-weight: 500;
+        }
+
+        /* 底部支付区域 */
+        .payment-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 16px 20px 32px;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+            z-index: 200;
+        }
+
+        .payment-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .payment-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .payment-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .payment-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .payment-price::before {
+            content: '¥';
+            font-size: 16px;
+            margin-right: 2px;
+        }
+
+        .payment-price-original {
+            font-size: 14px;
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .payment-icon {
+            width: 24px;
+            height: 24px;
+            background: #1677ff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* 协议区域 */
+        .agreement-section {
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .agreement-section.show {
+            display: block;
+        }
+
+        .agreement-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .agreement-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .agreement-checkbox.checked {
+            background: #d4a574;
+            border-color: #d4a574;
+        }
+
+        .agreement-checkbox svg {
+            width: 12px;
+            height: 12px;
+            stroke: #fff;
+            stroke-width: 2.5;
+            opacity: 0;
+        }
+
+        .agreement-checkbox.checked svg {
+            opacity: 1;
+        }
+
+        .agreement-link {
+            color: #d4a574;
+            text-decoration: none;
+        }
+
+        /* 支付按钮 */
+        .payment-btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
+            color: #fff;
+            border: none;
+            border-radius: 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(212, 165, 116, 0.35);
+            white-space: nowrap;
+        }
+
+        .payment-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 165, 116, 0.45);
+        }
+
+        .payment-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* 协议弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 24px 24px 0 0;
+            padding: 24px 20px 40px;
+            max-height: 70vh;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .modal-overlay.show+.modal-content,
+        .modal-content.show {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+        }
+
+        .modal-body {
+            max-height: 50vh;
+            overflow-y: auto;
+            line-height: 1.8;
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* 内容占位 */
+        .content-spacer {
+            height: 140px;
+        }
+
+        /* 提示 toast */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 我的服务弹窗 - 全屏样式 */
+        .service-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f5f7fa;
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            overflow-y: auto;
+        }
+
+        .service-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .service-modal .header {
+            background: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .service-content {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+
+        /* 服务卡片 */
+        .service-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        .service-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .service-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .service-status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .service-status-badge.active {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .service-status-badge.inactive {
+            background: rgba(153, 153, 153, 0.1);
+            color: #999;
+        }
+
+        .service-status-badge.expired {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        .service-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .service-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .service-info-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .service-info-value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .service-info-value.highlight {
+            color: #d4a574;
+            font-weight: 600;
+        }
+
+        /* 订阅管理卡片 */
+        .subscription-manage-card {
+            background: linear-gradient(135deg, #fdf8f3 0%, #f5ebe0 100%);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(212, 165, 116, 0.2);
+        }
+
+        .subscription-manage-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8b6f47;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subscription-manage-title svg {
+            width: 20px;
+            height: 20px;
+            stroke: #d4a574;
+            stroke-width: 2;
+        }
+
+        .subscription-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .subscription-info-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .subscription-info-value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .subscription-info-value.warning {
+            color: #ff9800;
+        }
+
+        /* 扣款记录链接 */
+        .payment-record-link {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #d4a574;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .payment-record-link:hover {
+            color: #b8956a;
+        }
+
+        /* 扣款记录弹窗 */
+        .record-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .record-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .record-modal-content {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 24px 24px 0 0;
+            max-height: 70vh;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 1501;
+            overflow: hidden;
+        }
+
+        .record-modal-overlay.show+.record-modal-content,
+        .record-modal-content.show {
+            transform: translateY(0);
+        }
+
+        .record-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+        }
+
+        .record-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .record-modal-close {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .record-modal-close:hover {
+            background: #f0f0f0;
+        }
+
+        .record-modal-body {
+            max-height: calc(70vh - 80px);
+            overflow-y: auto;
+            padding: 0 16px 32px;
+        }
+
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .record-item:last-child {
+            border-bottom: none;
+        }
+
+        .record-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .record-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .record-date {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .record-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e85a5a;
+        }
+
+        .record-amount::before {
+            content: '-';
+            margin-right: 1px;
+        }
+
+        .record-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .record-status.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .record-status.failed {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        /* 管理按钮组 */
+        .manage-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed rgba(212, 165, 116, 0.3);
+        }
+
+        .manage-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .manage-btn.primary {
+            background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
+            color: #fff;
+        }
+
+        .manage-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        }
+
+        .manage-btn.secondary {
+            background: #fff;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .manage-btn.secondary:hover {
+            background: #f9f9f9;
+        }
+
+        .manage-btn.danger {
+            background: #fff;
+            color: #e85a5a;
+            border: 1px solid #e85a5a;
+        }
+
+        .manage-btn.danger:hover {
+            background: rgba(232, 90, 90, 0.05);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            stroke: #ddd;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* 确认弹窗 */
+        .confirm-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .confirm-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .confirm-modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .confirm-modal-overlay.show .confirm-modal-content {
+            transform: scale(1);
+        }
+
+        .confirm-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .confirm-modal-text {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .confirm-modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .confirm-modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .confirm-modal-btn.cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .confirm-modal-btn.confirm {
+            background: linear-gradient(135deg, #d4a574 0%, #b8956a 100%);
+            color: #fff;
+        }
+
+        .confirm-modal-btn.danger {
+            background: #e85a5a;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="back-btn" onclick="goBack()">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </div>
+        <h1 class="header-title">云存储服务</h1>
+        <div class="header-placeholder"></div>
+    </header>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <div class="status-left">
+            <span class="status-label">当前状态：</span>
+            <span class="status-value">未开通</span>
+        </div>
+        <div class="my-service-btn">我的服务</div>
+    </div>
+
+    <!-- 套餐选择区 -->
+    <section class="package-section">
+        <!-- 标签切换 -->
+        <div class="tab-switch">
+            <div class="tab-item active" data-tab="subscription" onclick="switchTab('subscription')">
+                连续订阅<span class="badge">·更优惠</span>
+            </div>
+
+            <div class="tab-item" data-tab="single" onclick="switchTab('single')">单月购买</div>
+
+        </div>
+
+        <!-- 套餐列表 -->
+        <div class="package-list" id="packageList">
+            <!-- 动态生成 -->
+        </div>
+
+        <!-- 连续订阅说明 -->
+        <div class="subscription-tip" id="subscriptionTip">
+            <div class="tip-icon">?</div>
+            <span>连续订阅说明：到期自动续费，可随时取消。</span>
+        </div>
+    </section>
+
+    <!-- 权益区域 -->
+    <section class="benefits-section">
+        <div class="benefits-title">尊享权益</div>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+                    </svg>
+                </div>
+                <span class="benefit-text">实时智能监控</span>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" />
+                    </svg>
+                </div>
+                <span class="benefit-text">云端存储</span>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path
+                            d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+                    </svg>
+                </div>
+                <span class="benefit-text">信息加密上传</span>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <path d="M8 9h8M8 12h8M8 15h5" />
+                    </svg>
+                </div>
+                <span class="benefit-text">无限存储空间</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 内容占位 -->
+    <div class="content-spacer"></div>
+
+    <!-- 底部支付区域 -->
+    <section class="payment-section">
+        <div class="agreement-section" id="agreementSection">
+            <label class="agreement-label" onclick="toggleAgreement()">
+                <div class="agreement-checkbox" id="agreementCheckbox">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <span>已阅读并同意<a class="agreement-link"
+                        onclick="event.stopPropagation(); showAgreementModal()">《自动续费服务协议》</a></span>
+            </label>
+        </div>
+        <div class="payment-content">
+            <div class="payment-left">
+                <div class="payment-price-row">
+                    <span class="payment-price" id="paymentPrice">8.8</span>
+                    <span class="payment-price-original" id="paymentOriginal">原价 ¥9.9/月</span>
+                </div>
+                <div class="payment-method">
+                    <div class="payment-icon">支</div>
+                    <span>支付宝</span>
+                </div>
+            </div>
+            <button class="payment-btn" id="paymentBtn" onclick="handlePayment()">立即开通</button>
+        </div>
+    </section>
+
+    <!-- 协议弹窗 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="hideAgreementModal()"></div>
+    <div class="modal-content" id="modalContent">
+        <div class="modal-header">
+            <span class="modal-title">自动续费服务协议</span>
+            <div class="modal-close" onclick="hideAgreementModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+        <div class="modal-body">
+            <p><strong>1. 服务说明</strong></p>
+            <p>自动续费服务是指在用户开通连续订阅套餐后，系统将在每个计费周期到期前自动从用户账户中扣除下一周期的费用，以保证服务的连续性。</p>
+            <br>
+            <p><strong>2. 扣款规则</strong></p>
+            <p>首次开通享受优惠价，后续每期按原价自动续费。扣款将在到期前24小时进行，如扣款失败将保留3天宽限期。</p>
+            <br>
+            <p><strong>3. 取消订阅</strong></p>
+            <p>用户可随时在"我的服务"页面取消自动续费。取消后当前周期权益继续有效，到期后不再自动扣款。</p>
+            <br>
+            <p><strong>4. 退款说明</strong></p>
+            <p>自动续费成功后不支持退款。如有疑问请联系客服处理。</p>
+        </div>
+    </div>
+
+    <!-- 扣款记录弹窗 -->
+    <div class="record-modal-overlay" id="recordModalOverlay" onclick="hidePaymentRecordModal()"></div>
+    <div class="record-modal-content" id="recordModalContent">
+        <div class="record-modal-header">
+            <span class="record-modal-title">扣款记录</span>
+            <div class="record-modal-close" onclick="hidePaymentRecordModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+        <div class="record-modal-body" id="recordModalBody">
+            <!-- 动态生成 -->
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 我的服务弹窗 -->
+    <div class="service-modal" id="serviceModal">
+        <header class="header">
+            <div class="back-btn" onclick="hideServiceModal()">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <h1 class="header-title">我的服务</h1>
+            <div class="header-placeholder"></div>
+        </header>
+
+        <div class="service-content" id="serviceContent">
+            <!-- 动态生成内容 -->
+        </div>
+    </div>
+
+    <!-- 确认弹窗 -->
+    <div class="confirm-modal-overlay" id="confirmModal" onclick="hideConfirmModal(event)">
+        <div class="confirm-modal-content" onclick="event.stopPropagation()">
+            <div class="confirm-modal-title" id="confirmTitle">确认操作</div>
+            <div class="confirm-modal-text" id="confirmText">确定要执行此操作吗？</div>
+            <div class="confirm-modal-buttons">
+                <button class="confirm-modal-btn cancel" onclick="hideConfirmModal()">取消</button>
+                <button class="confirm-modal-btn confirm" id="confirmBtn" onclick="confirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 套餐数据
+        const packages = {
+            single: [
+                { id: 's1', name: '7天事件存储（包月）', price: '9.9', period: '月' },
+                { id: 's2', name: '7天事件存储（包年）', price: '99.9', period: '年' },
+                { id: 's3', name: '30天事件存储（包月）', price: '19.9', period: '月' },
+                { id: 's4', name: '30天事件存储（包年）', price: '199.9', period: '年' }
+            ],
+            subscription: [
+                { id: 'sub1', name: '7天事件存储（连续包月）', price: '8.8', original: '9.9', save: '省¥1.1/月', period: '月', recommend: true },
+                { id: 'sub2', name: '7天事件存储（连续包年）', price: '89.9', original: '99.9', save: '省¥10/年', period: '年' },
+                { id: 'sub3', name: '30天事件存储（连续包月）', price: '16.9', original: '19.9', save: '省¥3/月', period: '月' },
+                { id: 'sub4', name: '30天事件存储（连续包年）', price: '169.9', original: '199.9', save: '省¥30/年', period: '年' }
+            ]
+        };
+
+        // 用户已购服务数据（模拟）
+        let userServices = [
+            {
+                id: 'svc1',
+                name: '7天事件存储（连续包月）',
+                type: 'subscription',
+                status: 'active', // active, inactive, expired
+                startDate: '2026-03-15',
+                endDate: '2026-04-15',
+                nextDeductionDate: '2026-04-15',
+                nextDeductionAmount: '9.9',
+                originalPrice: '9.9',
+                currentPrice: '8.8',
+                autoRenew: true
+            }
+        ];
+
+        // 扣款记录数据（模拟）
+        const paymentRecords = {
+            'sub1': [
+                { date: '2026-03-15 09:30:22', amount: '8.80', status: 'success', title: '7天事件存储（连续包月）- 首次开通' },
+                { date: '2026-02-15 09:30:15', amount: '9.90', status: 'success', title: '7天事件存储（连续包月）- 自动续费' },
+                { date: '2026-01-15 09:30:08', amount: '9.90', status: 'success', title: '7天事件存储（连续包月）- 自动续费' },
+            ],
+            's1': [
+                { date: '2026-03-15 09:30:22', amount: '9.90', status: 'success', title: '7天事件存储（包月）- 单次购买' }
+            ],
+            'sub2': [
+                { date: '2026-01-10 14:20:30', amount: '89.90', status: 'success', title: '7天事件存储（连续包年）- 首次开通' }
+            ],
+            's2': [
+                { date: '2026-01-10 14:20:30', amount: '99.90', status: 'success', title: '7天事件存储（包年）- 单次购买' }
+            ]
+        };
+
+        // 状态
+        let currentTab = 'subscription';
+        let selectedPackage = 'sub1';
+        let agreementChecked = false;
+        let confirmCallback = null;
+        let confirmActionType = '';
+
+        // 初始化
+        function init() {
+            renderPackages();
+            updatePaymentArea();
+            updateStatusBar();
+        }
+
+        // 更新状态栏显示
+        function updateStatusBar() {
+            const activeService = userServices.find(s => s.status === 'active');
+            const statusValue = document.querySelector('.status-value');
+            if (activeService) {
+                statusValue.textContent = activeService.name;
+                statusValue.style.color = '#4caf50';
+            } else {
+                statusValue.textContent = '未开通';
+                statusValue.style.color = '#999';
+            }
+        }
+
+        // 切换标签
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // 更新标签样式
+            document.querySelectorAll('.tab-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.tab === tab);
+            });
+
+            // 切换时保持同类型套餐选中
+            const mapping = { 's1': 'sub1', 's2': 'sub2', 's3': 'sub3', 's4': 'sub4' };
+            const reverseMapping = { 'sub1': 's1', 'sub2': 's2', 'sub3': 's3', 'sub4': 's4' };
+
+            if (tab === 'subscription') {
+                selectedPackage = mapping[selectedPackage] || 'sub1';
+            } else {
+                selectedPackage = reverseMapping[selectedPackage] || 's1';
+            }
+
+            // 显示/隐藏订阅说明
+            document.getElementById('subscriptionTip').classList.toggle('hidden', tab !== 'subscription');
+
+            // 显示/隐藏协议区域
+            document.getElementById('agreementSection').classList.toggle('show', tab === 'subscription');
+
+            renderPackages();
+            updatePaymentArea();
+        }
+
+        // 渲染套餐列表
+        function renderPackages() {
+            const list = document.getElementById('packageList');
+            const data = packages[currentTab];
+
+            list.innerHTML = data.map(pkg => `
+                <div class="package-card ${pkg.id === selectedPackage ? 'selected' : ''}" 
+                     onclick="selectPackage('${pkg.id}')">
+                    ${pkg.recommend ? '<div class="recommend-badge">推荐</div>' : ''}
+                    <div class="price-block">
+                        <div class="price-main">${pkg.price}</div>
+                    </div>
+                    <div class="package-info">
+                        <div class="package-name">${pkg.name}</div>
+                        ${pkg.save ? `<div class="package-save">${pkg.save}</div>` : ''}
+                        ${pkg.original ? `<div class="package-original-price">原价 ¥${pkg.original}/${pkg.period}</div>` : ''}
+                    </div>
+                    <div class="check-mark">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 选择套餐
+        function selectPackage(id) {
+            selectedPackage = id;
+            renderPackages();
+            updatePaymentArea();
+        }
+
+        // 更新支付区域
+        function updatePaymentArea() {
+            const data = packages[currentTab].find(p => p.id === selectedPackage);
+            if (!data) return;
+
+            document.getElementById('paymentPrice').textContent = data.price;
+
+            const originalEl = document.getElementById('paymentOriginal');
+            if (data.original) {
+                originalEl.textContent = `原价 ¥${data.original}/${data.period}`;
+                originalEl.style.display = 'inline';
+            } else {
+                originalEl.style.display = 'none';
+            }
+
+            // 更新按钮状态和文案
+            const btn = document.getElementById('paymentBtn');
+            if (currentTab === 'subscription') {
+                btn.textContent = '立即开通';
+                btn.disabled = !agreementChecked;
+            } else {
+                btn.textContent = '去支付';
+                btn.disabled = false;
+            }
+        }
+
+        // 切换协议勾选
+        function toggleAgreement() {
+            agreementChecked = !agreementChecked;
+            document.getElementById('agreementCheckbox').classList.toggle('checked', agreementChecked);
+            updatePaymentArea();
+        }
+
+        // 处理支付
+        function handlePayment() {
+            if (currentTab === 'subscription' && !agreementChecked) {
+                showToast('请同意自动续费服务协议');
+                return;
+            }
+
+            const data = packages[currentTab].find(p => p.id === selectedPackage);
+            showToast(`正在调起支付：${data.name} ¥${data.price}`);
+        }
+
+        // 显示协议弹窗
+        function showAgreementModal() {
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('modalContent').classList.add('show');
+        }
+
+        // 隐藏协议弹窗
+        function hideAgreementModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('modalContent').classList.remove('show');
+        }
+
+        // 显示Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // 返回
+        function goBack() {
+            showToast('返回上一页');
+        }
+
+        // ==================== 我的服务功能 ====================
+
+        // 显示我的服务弹窗
+        function showServiceModal() {
+            renderServiceContent();
+            document.getElementById('serviceModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 隐藏我的服务弹窗
+        function hideServiceModal() {
+            document.getElementById('serviceModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // 渲染我的服务内容
+        function renderServiceContent() {
+            const container = document.getElementById('serviceContent');
+
+            if (userServices.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.5"/>
+                            <path d="M3 9h18M9 21V9" stroke-width="1.5"/>
+                        </svg>
+                        <div class="empty-state-text">暂无已开通的服务</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            userServices.forEach(service => {
+                // 订阅管理卡片（仅连续订阅显示）
+                if (service.type === 'subscription') {
+                    html += `
+                        <div class="subscription-manage-card">
+                           
+                            <div class="subscription-info-item">
+                                <span class="subscription-info-text">当前套餐</span>
+                                <span class="subscription-info-value">${service.name}</span>
+                            </div>
+                            
+                            <div class="subscription-info-item">
+                                <span class="subscription-info-text">自动续费状态</span>
+                                <span class="subscription-info-value ${service.autoRenew ? '' : 'warning'}">
+                                    ${service.autoRenew ? '自动续费中' : '已关闭'}
+                                </span>
+                            </div>
+                            <div class="subscription-info-item">
+                                <span class="subscription-info-text">下次扣款时间</span>
+                                <span class="subscription-info-value">${service.nextDeductionDate}</span>
+                            </div>
+                            <div class="subscription-info-item">
+                                <span class="subscription-info-text">扣款金额</span>
+                                <span class="subscription-info-value">¥${service.nextDeductionAmount}/${service.originalPrice === '9.9' ? '月' : '年'}</span>
+                            </div>
+                            <div class="subscription-info-item" style="cursor: pointer;" onclick="showPaymentRecordModal('${getPackageIdByService(service)}')">
+                                <span class="subscription-info-text">扣款记录</span>
+                                <span class="subscription-info-value" style="color: #d4a574; text-decoration: underline;">查看 ></span>
+                            </div>
+                            <div class="manage-buttons">
+                                ${service.autoRenew ? `
+                                   
+                                    <button class="manage-btn danger" onclick="showCancelConfirm('${service.id}')">取消自动续费</button>
+                                ` : `
+                                    <button class="manage-btn primary" onclick="showRestartConfirm('${service.id}')">重新开启续费</button>
+                                
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        // 显示取消续费确认
+        function showCancelConfirm(serviceId) {
+            confirmActionType = 'cancel';
+            confirmCallback = () => cancelSubscription(serviceId);
+            document.getElementById('confirmTitle').textContent = '取消自动续费';
+            document.getElementById('confirmText').textContent = '取消后，当前周期权益继续有效，到期后不再自动扣款。确定要取消吗？';
+            document.getElementById('confirmBtn').className = 'confirm-modal-btn danger';
+            document.getElementById('confirmBtn').textContent = '确认取消';
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        // 显示重新开启确认
+        function showRestartConfirm(serviceId) {
+            confirmActionType = 'restart';
+            confirmCallback = () => restartSubscription(serviceId);
+            document.getElementById('confirmTitle').textContent = '重新开启自动续费';
+            document.getElementById('confirmText').textContent = '开启后，将在到期前自动扣款续费，确保服务不中断。';
+            document.getElementById('confirmBtn').className = 'confirm-modal-btn confirm';
+            document.getElementById('confirmBtn').textContent = '确认开启';
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        // 隐藏确认弹窗
+        function hideConfirmModal(event) {
+            if (event && event.target !== document.getElementById('confirmModal') && event.target !== document.getElementById('confirmBtn')) {
+                return;
+            }
+            document.getElementById('confirmModal').classList.remove('show');
+        }
+
+        // 确认操作
+        function confirmAction() {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            hideConfirmModal();
+        }
+
+        // 取消订阅
+        function cancelSubscription(serviceId) {
+            const service = userServices.find(s => s.id === serviceId);
+            if (service) {
+                service.autoRenew = false;
+                service.status = 'inactive';
+                renderServiceContent();
+                updateStatusBar();
+                showToast('已取消自动续费，当前周期权益保留');
+            }
+        }
+
+        // 重新开启订阅
+        function restartSubscription(serviceId) {
+            const service = userServices.find(s => s.id === serviceId);
+            if (service) {
+                service.autoRenew = true;
+                service.status = 'active';
+                renderServiceContent();
+                updateStatusBar();
+                showToast('已重新开启自动续费');
+            }
+        }
+
+        // 立即续费
+        function renewNow(serviceId) {
+            showToast('调起续费支付...');
+        }
+
+        // 升级服务
+        function upgradeService(serviceId) {
+            showToast('跳转至套餐升级页面');
+        }
+
+        // 修改原来的"我的服务"按钮点击事件
+        document.querySelector('.my-service-btn').onclick = showServiceModal;
+
+        // 根据服务获取套餐ID（用于扣款记录）
+        function getPackageIdByService(service) {
+            if (service.name.includes('7天事件存储')) {
+                if (service.name.includes('连续包月')) return 'sub1';
+                if (service.name.includes('连续包年')) return 'sub2';
+                if (service.name.includes('包月')) return 's1';
+                if (service.name.includes('包年')) return 's2';
+            }
+            if (service.name.includes('30天事件存储')) {
+                if (service.name.includes('连续包月')) return 'sub3';
+                if (service.name.includes('连续包年')) return 'sub4';
+                if (service.name.includes('包月')) return 's3';
+                if (service.name.includes('包年')) return 's4';
+            }
+            return 'sub1';
+        }
+
+        // ==================== 扣款记录功能 ====================
+
+        // 显示扣款记录弹窗
+        function showPaymentRecordModal(packageId) {
+            const records = paymentRecords[packageId] || [];
+            const container = document.getElementById('recordModalBody');
+
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 40px 20px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5" width="60" height="60">
+                            <rect x="3" y="4" width="18" height="16" rx="2"/>
+                            <path d="M16 2v4M8 2v4M3 10h18"/>
+                        </svg>
+                        <div class="empty-state-text" style="margin-top: 12px;">暂无扣款记录</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = records.map(record => `
+                    <div class="record-item">
+                        <div class="record-info">
+                            <div class="record-title">${record.title}</div>
+                            <div class="record-date">${record.date}</div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="record-amount">¥${record.amount}</span>
+                            <span class="record-status ${record.status}">${record.status === 'success' ? '成功' : '失败'}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('recordModalOverlay').classList.add('show');
+            document.getElementById('recordModalContent').classList.add('show');
+        }
+
+        // 隐藏扣款记录弹窗
+        function hidePaymentRecordModal() {
+            document.getElementById('recordModalOverlay').classList.remove('show');
+            document.getElementById('recordModalContent').classList.remove('show');
+        }
+
+        // 初始化页面
+        init();
+    </script>
+</body>
+
+</html>
